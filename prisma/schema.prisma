@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Usuário do SaaS
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  nome      String?
+  senhaHash String
+  criadoEm  DateTime @default(now())
+
+  sites         Site[]
+  carteiras     Carteira[]
+  registros     RegistroDiario[]
+  dias          DiaMes[]
+  sessoes       Sessao[]
+  metas         Meta[]
+  movimentacoes Movimentacao[]
+  torneios      Torneio[]
+  cotacoes      Cotacao[]
+  saldos        SaldoCarteira[]
+  config        Config?
+}
+
+// Um site de poker (PS.ES, GG, ACR...)
+model Site {
+  id        Int              @id @default(autoincrement())
+  usuarioId Int             
+  nome      String
+  ativo     Boolean          @default(true)
+  ordem     Int              @default(0)
+  moeda     String           @default("USD") // USD | EUR | BRL
+  usuario   Usuario          @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  registros RegistroDiario[]
+  torneios  Torneio[]
+
+  @@index([usuarioId])
+}
+
+// Torneio jogado (para ROI, ITM% e ABI real)
+model Torneio {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int    
+  ano       Int
+  mes       Int
+  dia       Int
+  siteId    Int?
+  nome      String?
+  buyIn     Float
+  premio    Float   @default(0)
+  posicao   Int?
+  field     Int? // nº de jogadores
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  site      Site?   @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId, ano, mes])
+}
+
+// Registro de um site em um dia: banca inicial e saldo final.
+// resultado = saldoFinal - bancaInicial (sempre calculado, nunca armazenado)
+model RegistroDiario {
+  id           Int     @id @default(autoincrement())
+  usuarioId    Int    
+  ano          Int
+  mes          Int // 1-12
+  dia          Int // 1-31
+  siteId       Int
+  bancaInicial Float?
+  saldoFinal   Float?
+  usuario      Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  site         Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, ano, mes, dia])
+  @@index([usuarioId, ano, mes])
+}
+
+// Dados do dia (independentes de site)
+model DiaMes {
+  id          Int     @id @default(autoincrement())
+  usuarioId   Int    
+  ano         Int
+  mes         Int
+  dia         Int
+  jogou       Boolean @default(false)
+  horas       Float?
+  horaInicio  String?
+  horaFim     String?
+  nota        String? // anotações do dia (tilt log, mesas, etc.)
+  estado      String? // A | B | C (qualidade do jogo mental)
+  tipoJogo    String? // cash | mtt | spin | misto
+  checklist   String? // JSON: itens do checklist pré-sessão marcados
+  horasEstudo Float? // horas de estudo (solver, review, coaching)
+  usuario     Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, ano, mes, dia])
+  @@index([usuarioId, ano, mes])
+}
+
+// Uma sessão de jogo dentro de um dia (pode haver várias)
+model Sessao {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int    
+  ano       Int
+  mes       Int
+  dia       Int
+  inicio    String // "HH:MM"
+  fim       String? // null = sessão em andamento (cronômetro)
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, ano, mes, dia])
+}
+
+// Metas mensais (mes 1-12) ou anual (mes 0)
+model Meta {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int    
+  ano       Int
+  mes       Int // 0 = meta do ano inteiro
+  lucroAlvo Float?
+  horasAlvo Float?
+  diasAlvo  Int?
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, ano, mes])
+}
+
+// Saques, depósitos e despesas (aulas, softwares...)
+model Movimentacao {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int    
+  ano       Int
+  mes       Int
+  dia       Int
+  tipo      String // saque | deposito | despesa
+  valor     Float
+  descricao String?
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, ano, mes])
+}
+
+// Cotação manual para converter moedas de sites em USD
+model Cotacao {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int    
+  moeda     String // EUR, BRL...
+  paraUSD   Float // 1 unidade da moeda = X USD
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, moeda])
+}
+
+// Preferências e limites de alerta (uma linha por usuário)
+model Config {
+  id                 Int     @id @default(autoincrement())
+  usuarioId          Int     @unique
+  concentracaoMaxPct Float? // alerta se um site passar deste % da banca dos sites
+  saldoMinimo        Float? // alerta se a banca de um site ativo ficar abaixo disso
+  abi                Float? // Average Buy-in atual
+  buyinsMin          Int? // mínimo saudável de buy-ins (padrão 200)
+  buyinsTeto         Int? // acima disso: sacar ou subir o ABI (padrão 250)
+  custoVida          Float? // custo de vida mensal (para o runway)
+  reservaImpostoPct  Float? // % dos saques a reservar para imposto
+  usuario            Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+// Carteiras externas (Binance, Ecopayz, Luxon...) que compõem a Banca Total
+model Carteira {
+  id        Int             @id @default(autoincrement())
+  usuarioId Int            
+  nome      String
+  ativo     Boolean         @default(true)
+  ordem     Int             @default(0)
+  usuario   Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  saldos    SaldoCarteira[]
+
+  @@index([usuarioId])
+}
+
+// Saldo de uma carteira em um mês
+model SaldoCarteira {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int     
+  ano        Int
+  mes        Int
+  valor      Float
+  carteiraId Int
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  carteira   Carteira @relation(fields: [carteiraId], references: [id], onDelete: Cascade)
+
+  @@unique([carteiraId, ano, mes])
+}

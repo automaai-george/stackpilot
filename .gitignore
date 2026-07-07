@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# banco de dados local (seus dados - faca backup!)
+prisma/dev.db
+
+# ferramentas locais
+.claude/
