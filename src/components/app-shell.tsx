@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Receipt,
   Settings,
   Spade,
   Trophy,
@@ -111,6 +112,13 @@ function SidebarContent({
           icon={<Wallet className="size-4" />}
           label="Bankroll"
           active={pathname.startsWith("/bankroll")}
+          onClick={onNavigate}
+        />
+        <NavLink
+          href="/extrato"
+          icon={<Receipt className="size-4" />}
+          label="Extrato"
+          active={pathname.startsWith("/extrato")}
           onClick={onNavigate}
         />
       </Secao>
