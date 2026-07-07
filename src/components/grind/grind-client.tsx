@@ -625,6 +625,25 @@ export function GrindClient() {
           </div>
 
           {/* Cards por site */}
+          {dados.sites.length === 0 && (
+            <Card className="py-10">
+              <CardContent className="flex flex-col items-center gap-3 text-center">
+                <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Wallet className="size-6" />
+                </span>
+                <div>
+                  <h3 className="font-semibold">Cadastre seus sites de poker</h3>
+                  <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                    Adicione os sites em que você joga (PokerStars, GG, ACR…) e
+                    eles aparecem aqui para você lançar banca e saldo todo dia.
+                  </p>
+                </div>
+                <Button asChild className="mt-1">
+                  <Link href="/config">Adicionar meus sites</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {dados.sites.map((s) => {
               const r = dados.registros[s.id];
