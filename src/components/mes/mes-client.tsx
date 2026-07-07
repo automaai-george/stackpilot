@@ -68,6 +68,7 @@ const TIPOS_MOV = [
   { valor: "saque", rotulo: "Saque" },
   { valor: "deposito", rotulo: "Depósito" },
   { valor: "despesa", rotulo: "Despesa" },
+  { valor: "transferencia", rotulo: "Transferência" },
 ];
 
 // meta.className por coluna (alinhamento, bordas, sticky)
@@ -704,7 +705,7 @@ export function MesClient({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TIPOS_MOV.map((t) => (
+                {TIPOS_MOV.filter((t) => t.valor !== "transferencia").map((t) => (
                   <SelectItem key={t.valor} value={t.valor}>
                     {t.rotulo}
                   </SelectItem>

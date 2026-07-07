@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
+  ArrowLeftRight,
   ArrowRight,
   CalendarDays,
   Check,
@@ -25,6 +26,7 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react";
+import { TransferirDialog } from "@/components/transferir/transferir-dialog";
 import {
   Dialog,
   DialogContent,
@@ -138,6 +140,7 @@ export function GrindClient() {
   const [agora, setAgora] = useState(""); // relógio do cronômetro
   const [recapAberto, setRecapAberto] = useState(false);
   const [esconderValores, setEsconderValores] = useState(false);
+  const [transferindo, setTransferindo] = useState(false);
 
   useEffect(() => {
     setDataSel(hoje());
@@ -361,25 +364,37 @@ export function GrindClient() {
             </Button>
           )}
         </div>
-        <div
-          className={cn(
-            "flex items-center gap-1.5 text-xs font-medium",
-            pendentes > 0
-              ? "text-amber-600 dark:text-amber-400"
-              : "text-muted-foreground"
-          )}
-        >
-          {pendentes > 0 ? (
-            <>
-              <Loader2 className="size-3.5 animate-spin" /> Salvando…
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="size-3.5 text-emerald-500" /> Tudo salvo
-            </>
-          )}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setTransferindo(true)}>
+            <ArrowLeftRight className="size-4" />
+            Depósito / Saque
+          </Button>
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-medium",
+              pendentes > 0
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-muted-foreground"
+            )}
+          >
+            {pendentes > 0 ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin" /> Salvando…
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="size-3.5 text-emerald-500" /> Tudo salvo
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      <TransferirDialog
+        aberto={transferindo}
+        onFechar={() => setTransferindo(false)}
+        onSucesso={() => dataSel && carregar(dataSel)}
+      />
 
       {carregando || !dados ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

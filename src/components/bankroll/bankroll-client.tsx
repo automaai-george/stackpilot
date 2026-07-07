@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
+  ArrowLeftRight,
   Gauge,
   Globe,
   Landmark,
@@ -12,7 +13,9 @@ import {
   Settings,
   Wallet,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { TransferirDialog } from "@/components/transferir/transferir-dialog";
 import {
   Card,
   CardContent,
@@ -77,10 +80,12 @@ export function BankrollClient({
   carreiraInicial: Carreira;
   saquesAno: number;
 }) {
+  const router = useRouter();
   const [sites, setSites] = useState<SiteBanca[]>(sitesIniciais);
   const [contas, setContas] = useState<Conta[]>(contasIniciais);
   const [novaConta, setNovaConta] = useState("");
   const [gestao, setGestao] = useState<Gestao>(gestaoInicial);
+  const [transferindo, setTransferindo] = useState(false);
   const [carreira, setCarreira] = useState<Carreira>(carreiraInicial);
 
   async function salvarCarreira(campo: keyof Carreira, v: number | null) {
@@ -201,12 +206,24 @@ export function BankrollClient({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Bankroll</h1>
-        <p className="text-sm text-muted-foreground">
-          Onde o seu dinheiro está agora: sites de poker e contas digitais.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Bankroll</h1>
+          <p className="text-sm text-muted-foreground">
+            Onde o seu dinheiro está agora: sites de poker e contas digitais.
+          </p>
+        </div>
+        <Button onClick={() => setTransferindo(true)}>
+          <ArrowLeftRight className="size-4" />
+          Transferir / Sacar / Depositar
+        </Button>
       </div>
+
+      <TransferirDialog
+        aberto={transferindo}
+        onFechar={() => setTransferindo(false)}
+        onSucesso={() => router.refresh()}
+      />
 
       {/* Totais */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
