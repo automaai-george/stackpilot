@@ -23,9 +23,6 @@ export async function GET(req: Request) {
   if (!(await autorizado(req))) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json({ error: "Blob não configurado" }, { status: 500 });
-  }
 
   const [
     usuarios, sites, carteiras, registros, dias, sessoes, metas,
@@ -61,11 +58,20 @@ export async function GET(req: Request) {
   const carimbo = agora.toISOString().slice(0, 19).replace(/[:T]/g, "-");
   const nome = `backups/stackpilot-${carimbo}.json`;
 
-  const { url } = await put(nome, JSON.stringify(dump), {
-    access: "private", // exige autenticação para ler (store privado)
-    contentType: "application/json",
-    addRandomSuffix: true,
-  });
+  let url: string;
+  try {
+    const r = await put(nome, JSON.stringify(dump), {
+      access: "private", // store privado (autenticação via identidade do deploy)
+      contentType: "application/json",
+      addRandomSuffix: true,
+    });
+    url = r.url;
+  } catch (e) {
+    return NextResponse.json(
+      { error: "Falha ao gravar no Blob", detalhe: e instanceof Error ? e.message : String(e) },
+      { status: 500 }
+    );
+  }
 
   // limpa backups antigos (mantém os mais recentes)
   try {
