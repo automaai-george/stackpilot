@@ -534,7 +534,7 @@ export function DashboardClient({
       </div>
 
       {/* Filtro de período */}
-      <Card className="py-3">
+      <Card className="py-3" data-tour="filtro-periodo">
         <CardContent className="flex flex-wrap items-center gap-2 px-4">
           <span className="mr-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <CalendarRange className="size-3.5" />
@@ -636,6 +636,7 @@ export function DashboardClient({
 
       {/* Metas com pace e projeções */}
       {alcanceMeta && metaResolvida && (
+        <div data-tour="metas">
         <MetasSection
           titulo={
             alcanceMeta.mes === 0
@@ -648,6 +649,7 @@ export function DashboardClient({
           projecoes={projecoes}
           onMeta={salvarMeta}
         />
+        </div>
       )}
 
       {/* Cards principais */}

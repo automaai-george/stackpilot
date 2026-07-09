@@ -8,6 +8,7 @@ import {
   CalendarDays,
   ChartSpline,
   Flame,
+  HelpCircle,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { MARCA } from "@/lib/marca";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { TourLauncher } from "@/components/tour/tour-launcher";
 
 const ANO_ATUAL = new Date().getFullYear();
 
@@ -31,17 +33,20 @@ function NavLink({
   label,
   active,
   onClick,
+  tourId,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
   active: boolean;
   onClick?: () => void;
+  tourId?: string;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
+      data-tour={tourId}
       className={cn(
         "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
         active
@@ -99,6 +104,7 @@ function SidebarContent({
           label="Iniciar grind"
           active={pathname.startsWith("/grind")}
           onClick={onNavigate}
+          tourId="menu-grind"
         />
         <NavLink
           href="/"
@@ -113,6 +119,7 @@ function SidebarContent({
           label="Bankroll"
           active={pathname.startsWith("/bankroll")}
           onClick={onNavigate}
+          tourId="menu-bankroll"
         />
         <NavLink
           href="/extrato"
@@ -120,6 +127,7 @@ function SidebarContent({
           label="Extrato"
           active={pathname.startsWith("/extrato")}
           onClick={onNavigate}
+          tourId="menu-extrato"
         />
       </Secao>
 
@@ -130,6 +138,7 @@ function SidebarContent({
           label="Meses"
           active={pathname === "/meses" || pathname.startsWith("/mes/")}
           onClick={onNavigate}
+          tourId="menu-meses"
         />
         <NavLink
           href="/torneios"
@@ -137,6 +146,7 @@ function SidebarContent({
           label="Torneios"
           active={pathname.startsWith("/torneios")}
           onClick={onNavigate}
+          tourId="menu-torneios"
         />
         <NavLink
           href={`/anual/${anoSel}`}
@@ -151,6 +161,7 @@ function SidebarContent({
           label="Estatísticas"
           active={pathname.startsWith("/estatisticas")}
           onClick={onNavigate}
+          tourId="menu-stats"
         />
       </Secao>
 
@@ -161,7 +172,18 @@ function SidebarContent({
           label="Configurações"
           active={pathname.startsWith("/config")}
           onClick={onNavigate}
+          tourId="menu-config"
         />
+        <button
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          onClick={() => {
+            onNavigate?.();
+            window.dispatchEvent(new Event("stackpilot:tour"));
+          }}
+        >
+          <HelpCircle className="size-4" />
+          Refazer tour
+        </button>
       </Secao>
 
       <div className="mt-auto flex items-center justify-between border-t px-2 pt-3">
@@ -211,6 +233,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             variant="ghost"
             size="icon"
             aria-label="Abrir menu"
+            data-tour="menu-mobile"
             onClick={() => setOpen(true)}
           >
             <Menu className="size-5" />
@@ -245,6 +268,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="min-w-0 flex-1 pt-14 lg:pl-60 lg:pt-0 print:pl-0 print:pt-0">
         <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8 print:p-0">{children}</div>
       </main>
+
+      <TourLauncher />
     </div>
   );
 }
