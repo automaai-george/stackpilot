@@ -62,7 +62,7 @@ export async function GET(req: Request) {
   const nome = `backups/stackpilot-${carimbo}.json`;
 
   const { url } = await put(nome, JSON.stringify(dump), {
-    access: "public", // URL aleatória e não divulgada
+    access: "private", // exige autenticação para ler (store privado)
     contentType: "application/json",
     addRandomSuffix: true,
   });
