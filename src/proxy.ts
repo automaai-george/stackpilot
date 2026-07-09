@@ -20,8 +20,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // tudo, exceto páginas públicas, estáticos e ícones
+  // tudo, exceto páginas públicas, o cron (que se protege sozinho),
+  // estáticos e ícones
   matcher: [
-    "/((?!lp|login|registro|api/login|api/registro|manifest\\.webmanifest|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|svg|jpg|ico)$).*)",
+    "/((?!lp|login|registro|api/login|api/registro|api/cron|manifest\\.webmanifest|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|svg|jpg|ico)$).*)",
   ],
 };
